@@ -3,6 +3,65 @@
 A FastAPI application that replicates the business logic from the
 `test-datafile-with formula.xlsx` spreadsheet as a set of JSON APIs.
 
+## How This App Was Built
+
+This application was built entirely by GitHub Copilot, guided by a custom
+[`.github/copilot-instructions.md`](.github/copilot-instructions.md) file that
+defines a structured workflow for turning spreadsheets into APIs.
+
+### Step 1 – Spreadsheet Analysis (Formula Extraction)
+
+Copilot parsed the `.xlsx` file directly by reading its internal XML
+(`xl/worksheets/*.xml`, `xl/workbook.xml`, `xl/sharedStrings.xml`). For each
+of the 3 sheets it identified:
+
+- **Cell references** and their values
+- **58 formulas** (27 normal, 31 shared/drag-filled)
+- **Named ranges**: `Commission_Level` → `Tables!$A$2:$A$6`,
+  `Bonus_Rate` → `Tables!$B$2:$B$6`
+- **Cross-sheet dependencies**: Tables sheet feeds lookups into Commissions;
+  Commissions data feeds CONCAT formulas back into Tables
+- **Functions used**: `XLOOKUP`, `CONCAT`, `IF`, `SUMIF`, `SUM`, `AVERAGE`,
+  `MODE.SNGL`, `MEDIAN`
+
+### Step 2 – Business Logic Interpretation
+
+Following the copilot instructions' *Formula Interpretation Rules*, each
+formula was translated from Excel syntax into plain-English business rules:
+
+| Excel Formula | Business Meaning |
+|---|---|
+| `XLOOKUP(E5, Commission_Level, Bonus_Rate, , -1)` | Look up the bonus rate tier for this agent's sales amount (largest threshold ≤ sales) |
+| `E5 + (E5 * F5)` | Total compensation = sales + bonus |
+| `SUMIF($D$5:$D$14, C18, $G$5:$G$14)` | Sum all agent totals for a given branch |
+| `SUM(E18:E20)` | Grand total across all branches |
+| `AVERAGE(G5:G14)` | Average agent compensation |
+| `MODE.SNGL(G5:G14)` | Most common compensation value |
+| `MEDIAN(G5:G14)` | Median agent compensation |
+| `IF(E7="Business Policy","No","Yes")` | Flag whether a policy is a personal line |
+| `CONCAT(C5," ",B5,", ",D5)` | Build display name: "First Last, Branch" |
+
+### Step 3 – API Reconstruction
+
+Following the copilot instructions' *API Reconstruction Principles* and
+*Preferred API Design Style*, the formulas were grouped into business
+capabilities and mapped to API endpoints:
+
+- **Lookup tables** → externalized into `app/data/reference_data.py`
+- **Commission formulas** → deterministic functions in
+  `app/services/commission_service.py`
+- **Policy classification** → `app/services/policy_service.py`
+- **Pydantic models** → `app/schemas.py` with field-level traceability back to
+  spreadsheet columns (e.g. `sales_amount` ← `Commissions!E`)
+- **FastAPI routes** → `app/routes/` with one router per business domain
+- **Unit tests** → 24 tests using actual spreadsheet values to verify parity
+
+### Step 4 – Validation
+
+Tests were run to confirm the API produces the same outputs as the spreadsheet
+for every formula. Sample API responses are captured in the
+[Sample API Test Results](#sample-api-test-results) section below.
+
 ## What the Spreadsheet Does
 
 The workbook tracks insurance agents, calculates tiered commission bonuses on
