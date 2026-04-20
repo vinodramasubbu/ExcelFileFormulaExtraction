@@ -1,0 +1,168 @@
+### Central Sierra Insurance – Commission API
+### Use with the VS Code REST Client extension
+
+@baseUrl = http://127.0.0.1:8000
+
+### ─── Health Check ──────────────────────────────────────────────
+
+GET {{baseUrl}}/health
+
+### ─── Reference Data (GET lookup tables) ────────────────────────
+
+GET {{baseUrl}}/api/reference/
+
+### ─── Single Commission Calculation ─────────────────────────────
+### Replicates: XLOOKUP bonus rate (col F) + total with bonus (col G)
+
+POST {{baseUrl}}/api/commissions/calculate
+Content-Type: application/json
+
+{
+  "agent_id": 101,
+  "first_name": "Bob",
+  "last_name": "Lingle",
+  "branch": "Cameron Park",
+  "sales_amount": 8000
+}
+
+### ─── Single Commission – Low Sales (below lowest tier) ─────────
+
+POST {{baseUrl}}/api/commissions/calculate
+Content-Type: application/json
+
+{
+  "agent_id": 999,
+  "first_name": "Test",
+  "last_name": "Agent",
+  "branch": "Folsom",
+  "sales_amount": 2000
+}
+
+### ─── Single Commission – High Sales (top tier) ─────────────────
+
+POST {{baseUrl}}/api/commissions/calculate
+Content-Type: application/json
+
+{
+  "agent_id": 125,
+  "first_name": "Cheryl",
+  "last_name": "Nevens",
+  "branch": "Cameron Park",
+  "sales_amount": 12000
+}
+
+### ─── Bulk Commission Summary ───────────────────────────────────
+### Replicates: all agent rows + SUMIF branch totals + SUM/AVG/MODE/MEDIAN
+
+POST {{baseUrl}}/api/commissions/summary
+Content-Type: application/json
+
+{
+  "agents": [
+    {
+      "agent_id": 101,
+      "first_name": "Bob",
+      "last_name": "Lingle",
+      "branch": "Cameron Park",
+      "sales_amount": 8000
+    },
+    {
+      "agent_id": 102,
+      "first_name": "Lanita",
+      "last_name": "McCartney",
+      "branch": "Folsom",
+      "sales_amount": 6000
+    },
+    {
+      "agent_id": 103,
+      "first_name": "Eleesha",
+      "last_name": "Santos",
+      "branch": "Cameron Park",
+      "sales_amount": 3000
+    },
+    {
+      "agent_id": 104,
+      "first_name": "Roy",
+      "last_name": "Baxter",
+      "branch": "Granite Bay",
+      "sales_amount": 7000
+    },
+    {
+      "agent_id": 105,
+      "first_name": "Jennifer",
+      "last_name": "Alaro",
+      "branch": "Folsom",
+      "sales_amount": 15000
+    },
+    {
+      "agent_id": 115,
+      "first_name": "Tami",
+      "last_name": "Chan",
+      "branch": "Cameron Park",
+      "sales_amount": 9000
+    },
+    {
+      "agent_id": 117,
+      "first_name": "Charlene",
+      "last_name": "Althouse",
+      "branch": "Granite Bay",
+      "sales_amount": 8000
+    },
+    {
+      "agent_id": 119,
+      "first_name": "Juan",
+      "last_name": "Taylor",
+      "branch": "Granite Bay",
+      "sales_amount": 4000
+    },
+    {
+      "agent_id": 120,
+      "first_name": "Wayne",
+      "last_name": "Reza",
+      "branch": "Cameron Park",
+      "sales_amount": 4000
+    },
+    {
+      "agent_id": 125,
+      "first_name": "Cheryl",
+      "last_name": "Nevens",
+      "branch": "Cameron Park",
+      "sales_amount": 12000
+    }
+  ]
+}
+
+### ─── Classify Single Policy – Personal Line ────────────────────
+### Replicates: IF(type="Business Policy","No","Yes")
+
+POST {{baseUrl}}/api/policies/classify
+Content-Type: application/json
+
+{
+  "policy_type": "Automobile"
+}
+
+### ─── Classify Single Policy – Business Policy ──────────────────
+
+POST {{baseUrl}}/api/policies/classify
+Content-Type: application/json
+
+{
+  "policy_type": "Business Policy"
+}
+
+### ─── Bulk Policy Classification ────────────────────────────────
+
+POST {{baseUrl}}/api/policies/classify/bulk
+Content-Type: application/json
+
+{
+  "policies": [
+    { "policy_type": "Automobile" },
+    { "policy_type": "Business Policy" },
+    { "policy_type": "Health" },
+    { "policy_type": "Homeowners" },
+    { "policy_type": "Life" },
+    { "policy_type": "Renters" }
+  ]
+}
