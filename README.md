@@ -1,4 +1,4 @@
-# Central Sierra Insurance – Commission & Policy API
+# Commission & Policy API
 
 A FastAPI application that replicates the business logic from the
 `test-datafile-with formula.xlsx` spreadsheet as a set of JSON APIs.
